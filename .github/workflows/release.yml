@@ -16,18 +16,21 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      # --publish never: تاگ کە هەبێت، electron-builder خۆی هەوڵ دەدات
+      # فایلەکان ئەپلۆد بکات و داوای GH_TOKEN دەکات. ئەپلۆدکردن کاری
+      # هەنگاوی «Publish release»ـە لە خوارەوە، بۆیە لێرە دەکوژێنرێتەوە.
       - name: Build Windows installer + portable
-        run: npm run build
+        run: npm run build -- --publish never
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
