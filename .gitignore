@@ -1,0 +1,26 @@
+node_modules/
+dist/
+out/
+release/
+
+# ئایکۆنەکان لە گیت دەمێننەوە (بویڵد پێویستی پێیانە) —
+# بەڵام دەرئەنجامی بویڵد نا
+build/*
+!build/icon.ico
+!build/icon.png
+
+*.log
+npm-debug.log*
+
+.DS_Store
+Thumbs.db
+
+.env
+.env.local
+settings.json
+journal.json
+drawings.json
+
+.vscode/
+.idea/
+*.swp

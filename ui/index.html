@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="ku" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    />
+    <title>Hirani Crypto Trade Bot</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ══════════ سەرەوە ══════════ -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">H</div>
+        <div class="brand-text">
+          <div class="brand-name">Hirani <span>Trade Bot</span></div>
+          <div class="brand-sub" data-i18n="app.tagline"></div>
+        </div>
+      </div>
+
+      <div class="ticker-block">
+        <input
+          id="symbolInput"
+          list="symbolList"
+          class="input symbol-input"
+          placeholder="BTC/USDT"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <datalist id="symbolList"></datalist>
+        <div class="ticker-price">
+          <span id="priceBadge" class="price">—</span>
+          <span id="changeBadge" class="change"></span>
+        </div>
+        <div class="ticker-stats">
+          <div><span class="lbl">24h H</span><span id="stat24h" class="val">—</span></div>
+          <div><span class="lbl">24h L</span><span id="stat24l" class="val">—</span></div>
+          <div><span class="lbl">Vol</span><span id="statVol" class="val">—</span></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="seg" id="marketTypeSeg">
+          <button class="seg-btn active" data-value="spot" data-i18n="market.spot"></button>
+          <button class="seg-btn" data-value="swap" data-i18n="market.futures"></button>
+        </div>
+
+        <div class="seg tf-seg" id="tfSeg">
+          <button class="seg-btn" data-tf="5m">5m</button>
+          <button class="seg-btn" data-tf="15m">15m</button>
+          <button class="seg-btn" data-tf="1h">1H</button>
+          <button class="seg-btn" data-tf="4h">4H</button>
+          <button class="seg-btn" data-tf="1d">1D</button>
+          <button class="seg-btn" data-tf="1w">1W</button>
+        </div>
+
+        <select id="langSelect" class="input lang-select"></select>
+        <button id="refreshBtn" class="btn ghost icon-btn" data-i18n-title="header.refresh">⟳</button>
+      </div>
+
+      <div class="status">
+        <span id="exchangeBadge" class="chip">—</span>
+        <span id="modeBadge" class="chip demo">DEMO</span>
+      </div>
+    </header>
+
+    <!-- ══════════ تابەکان ══════════ -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="dashboard" data-i18n="nav.dashboard"></button>
+      <button class="tab" data-tab="trade" data-i18n="nav.trade"></button>
+      <button class="tab" data-tab="orders" data-i18n="nav.orders"></button>
+      <button class="tab" data-tab="chat" data-i18n="nav.chat"></button>
+      <button class="tab" data-tab="alerts" data-i18n="nav.alerts"></button>
+      <button class="tab" data-tab="journal" data-i18n="nav.journal"></button>
+      <button class="tab" data-tab="settings" data-i18n="nav.settings"></button>
+    </nav>
+
+    <main>
+      <!-- ══════════ داشبۆرد ══════════ -->
+      <section class="view active" id="view-dashboard">
+        <!-- ڕیزی ١: چارتی گەورە + ستوونی باریک -->
+        <div class="row-chart">
+          <div class="card chart-card">
+            <div class="chart-topbar">
+              <div class="chart-title">
+                <span id="chartTitle">BTC/USDT</span>
+                <span id="chartTf" class="badge-tf">1H</span>
+              </div>
+              <div id="ohlcReadout" class="ohlc"></div>
+            </div>
+
+            <div class="chart-toolbar">
+              <div class="tool-group" id="toolGroup">
+                <button class="tool active" data-tool="cursor" data-i18n-title="chart.tool.cursor">✥</button>
+                <button class="tool" data-tool="trend" data-i18n-title="chart.tool.trend">╱</button>
+                <button class="tool" data-tool="ray" data-i18n-title="chart.tool.ray">↗</button>
+                <button class="tool" data-tool="hline" data-i18n-title="chart.tool.hline">═</button>
+                <button class="tool" data-tool="rect" data-i18n-title="chart.tool.rect">▭</button>
+                <button class="tool" data-tool="fib" data-i18n-title="chart.tool.fib">≣</button>
+              </div>
+              <div class="tool-group">
+                <button class="tool" id="delDrawBtn" data-i18n-title="chart.tool.delete">🗑</button>
+                <button class="tool" id="clearDrawBtn" data-i18n-title="chart.tool.clear">⊘</button>
+                <button class="tool" id="resetViewBtn" data-i18n-title="chart.tool.reset">⤢</button>
+              </div>
+              <div class="tool-group" id="overlayGroup">
+                <button class="tool wide active" data-overlay="ema20">EMA20</button>
+                <button class="tool wide active" data-overlay="ema50">EMA50</button>
+                <button class="tool wide" data-overlay="ema200">EMA200</button>
+                <button class="tool wide" data-overlay="bb">BOLL</button>
+                <button class="tool wide" data-overlay="vwap">VWAP</button>
+              </div>
+              <div class="tool-group" id="paneGroup">
+                <button class="tool wide active" data-pane="volume">VOL</button>
+                <button class="tool wide" data-pane="rsi">RSI</button>
+                <button class="tool wide" data-pane="macd">MACD</button>
+              </div>
+            </div>
+
+            <div class="chart-wrap"><canvas id="chart"></canvas></div>
+            <div class="chart-hint" data-i18n="chart.hint"></div>
+          </div>
+
+          <aside class="side-col">
+            <div class="card side-card">
+              <div class="card-head">
+                <h3 data-i18n="watchlist.title"></h3>
+                <button id="addWatchBtn" class="btn tiny" data-i18n="watchlist.add"></button>
+              </div>
+              <div id="watchlist" class="watchlist"></div>
+            </div>
+
+            <div class="card side-card">
+              <div class="card-head"><h3 data-i18n="balance.title"></h3></div>
+              <div id="balanceBox" class="balance-box muted"></div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- ڕیزی ٢: ئەندیکەیتەرەکان -->
+        <div class="card">
+          <div class="card-head"><h3 data-i18n="indicators.title"></h3></div>
+          <div id="indicatorsGrid" class="indicators muted"></div>
+        </div>
+
+        <!-- ڕیزی ٣: شیکاری AI (ئاسۆیی، دوگمەکان لە سەرەوە) -->
+        <div class="card ai-card">
+          <div class="ai-header">
+            <div class="ai-header-left">
+              <h3 data-i18n="ai.title"></h3>
+              <span id="aiProviderChip" class="chip small"></span>
+            </div>
+            <div class="ai-header-right">
+              <input id="aiNote" class="input" data-i18n-ph="ai.notePh" />
+              <button id="analyzeBtn" class="btn primary" data-i18n="ai.analyze"></button>
+              <button id="execBtn" class="btn success hidden" data-i18n="ai.execute"></button>
+              <button id="fillManualBtn" class="btn hidden" data-i18n="ai.toManual"></button>
+            </div>
+          </div>
+          <div id="aiStatus" class="ai-status muted"></div>
+          <div id="signalBox" class="signal-grid"></div>
+        </div>
+
+        <!-- ڕیزی ٤: پۆزیشنەکان وەک خشتە -->
+        <div class="card">
+          <div class="card-head">
+            <h3 data-i18n="positions.title"></h3>
+            <button id="dashReloadPos" class="btn tiny" data-i18n="header.refresh"></button>
+          </div>
+          <div id="dashPositions" class="muted"></div>
+        </div>
+      </section>
+
+      <!-- ══════════ مامەڵە ══════════ -->
+      <section class="view" id="view-trade">
+        <div class="grid-two">
+          <div class="card">
+            <div class="card-head"><h3 data-i18n="trade.manual"></h3></div>
+            <form id="manualForm" class="form">
+              <div class="form-row">
+                <label><span data-i18n="trade.orderType"></span>
+                  <select id="ordType" class="input">
+                    <option value="market" data-i18n="trade.market"></option>
+                    <option value="limit" data-i18n="trade.limit"></option>
+                  </select>
+                </label>
+                <label><span data-i18n="trade.side"></span>
+                  <select id="ordSide" class="input">
+                    <option value="buy" data-i18n="trade.buy"></option>
+                    <option value="sell" data-i18n="trade.sell"></option>
+                  </select>
+                </label>
+              </div>
+              <div class="form-row">
+                <label id="ordPriceWrap" class="hidden"><span data-i18n="trade.price"></span>
+                  <input id="ordPrice" type="number" step="any" class="input" />
+                </label>
+                <label><span data-i18n="trade.amount"></span>
+                  <input id="ordQuote" type="number" step="any" class="input" placeholder="100" />
+                </label>
+              </div>
+              <div class="form-row">
+                <label id="ordLevWrap"><span data-i18n="trade.leverage"></span>
+                  <input id="ordLeverage" type="number" min="1" max="125" value="5" class="input" />
+                </label>
+                <label id="ordMarginWrap"><span data-i18n="trade.marginMode"></span>
+                  <select id="ordMargin" class="input">
+                    <option value="isolated" data-i18n="trade.isolated"></option>
+                    <option value="cross" data-i18n="trade.cross"></option>
+                  </select>
+                </label>
+              </div>
+              <div class="form-row">
+                <label><span data-i18n="ai.stopLoss"></span>
+                  <input id="ordSL" type="number" step="any" class="input" />
+                </label>
+                <label><span data-i18n="ai.takeProfit"></span>
+                  <input id="ordTP" type="number" step="any" class="input" />
+                </label>
+              </div>
+              <button type="submit" class="btn primary big" data-i18n="trade.submit"></button>
+            </form>
+            <div id="manualResult" class="result"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3 data-i18n="trade.calc"></h3></div>
+            <form id="calcForm" class="form">
+              <div class="form-row">
+                <label><span data-i18n="trade.balance"></span>
+                  <input id="calcBalance" type="number" step="any" class="input" />
+                </label>
+                <label><span data-i18n="trade.riskPct"></span>
+                  <input id="calcRisk" type="number" step="any" value="1.5" class="input" />
+                </label>
+              </div>
+              <div class="form-row">
+                <label><span data-i18n="ai.entry"></span>
+                  <input id="calcEntry" type="number" step="any" class="input" />
+                </label>
+                <label><span data-i18n="ai.stopLoss"></span>
+                  <input id="calcStop" type="number" step="any" class="input" />
+                </label>
+              </div>
+              <label><span data-i18n="trade.leverage"></span>
+                <input id="calcLev" type="number" min="1" value="1" class="input" />
+              </label>
+              <button type="submit" class="btn big" data-i18n="trade.calculate"></button>
+            </form>
+            <div id="calcResult" class="result"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════ فەرمانەکان ══════════ -->
+      <section class="view" id="view-orders">
+        <div class="card">
+          <div class="card-head">
+            <h3 data-i18n="positions.title"></h3>
+            <button id="reloadPositions" class="btn tiny" data-i18n="header.refresh"></button>
+          </div>
+          <div id="positionsBox" class="muted"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3 data-i18n="orders.title"></h3>
+            <button id="reloadOrders" class="btn tiny" data-i18n="header.refresh"></button>
+          </div>
+          <div id="ordersBox" class="muted"></div>
+        </div>
+      </section>
+
+      <!-- ══════════ چات ══════════ -->
+      <section class="view" id="view-chat">
+        <div class="card">
+          <div class="card-head">
+            <h3 data-i18n="chat.title"></h3>
+            <label class="inline-check">
+              <input type="checkbox" id="chatContext" checked />
+              <span data-i18n="chat.context"></span>
+            </label>
+          </div>
+          <div id="chatLog" class="chat-log"></div>
+          <form id="chatForm" class="chat-form">
+            <input id="chatInput" class="input" data-i18n-ph="chat.placeholder" />
+            <button class="btn primary" data-i18n="chat.send"></button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ══════════ ئاگاداری ══════════ -->
+      <section class="view" id="view-alerts">
+        <div class="card">
+          <div class="card-head"><h3 data-i18n="alerts.title"></h3></div>
+          <form id="alertForm" class="form inline-form">
+            <input id="alertSymbol" class="input" placeholder="BTC/USDT" />
+            <select id="alertCondition" class="input">
+              <option value="above" data-i18n="alerts.above"></option>
+              <option value="below" data-i18n="alerts.below"></option>
+            </select>
+            <input id="alertPrice" type="number" step="any" class="input" data-i18n-ph="alerts.price" />
+            <button class="btn primary" data-i18n="alerts.add"></button>
+          </form>
+          <div id="alertsBox" class="muted"></div>
+        </div>
+      </section>
+
+      <!-- ══════════ تۆمار ══════════ -->
+      <section class="view" id="view-journal">
+        <div class="card">
+          <div class="card-head">
+            <h3 data-i18n="journal.title"></h3>
+            <div class="row">
+              <button id="reloadJournal" class="btn tiny" data-i18n="header.refresh"></button>
+              <button id="clearJournal" class="btn tiny danger" data-i18n="journal.clear"></button>
+            </div>
+          </div>
+          <div id="journalStats" class="stats"></div>
+          <div id="journalBox" class="muted"></div>
+        </div>
+      </section>
+
+      <!-- ══════════ ڕێکخستن ══════════ -->
+      <section class="view" id="view-settings">
+        <div class="grid-two">
+          <!-- بۆرسە -->
+          <div class="card">
+            <div class="card-head">
+              <h3 data-i18n="settings.exchange"></h3>
+              <a id="exchangeDocsLink" href="#" class="link small" data-i18n="settings.getKeys"></a>
+            </div>
+            <form id="exchangeForm" class="form">
+              <label><span data-i18n="settings.selectExchange"></span>
+                <select id="exchangeSelect" class="input"></select>
+              </label>
+              <label><span data-i18n="settings.apiKey"></span>
+                <input id="setExKey" class="input" type="password" autocomplete="off" />
+              </label>
+              <label><span data-i18n="settings.secret"></span>
+                <input id="setExSecret" class="input" type="password" autocomplete="off" />
+              </label>
+              <label id="exPassWrap"><span data-i18n="settings.password"></span>
+                <input id="setExPass" class="input" type="password" autocomplete="off" />
+              </label>
+              <label class="inline-check">
+                <input type="checkbox" id="setDemo" />
+                <span data-i18n="settings.demo"></span>
+              </label>
+              <div id="demoNote" class="note" data-i18n="settings.demoNote"></div>
+              <div class="row">
+                <button type="submit" class="btn primary" data-i18n="settings.save"></button>
+                <button type="button" id="testExBtn" class="btn" data-i18n="settings.test"></button>
+              </div>
+            </form>
+            <div id="exResult" class="result"></div>
+          </div>
+
+          <!-- AI -->
+          <div class="card">
+            <div class="card-head">
+              <h3 data-i18n="settings.ai"></h3>
+              <a id="aiDocsLink" href="#" class="link small" data-i18n="settings.getKeys"></a>
+            </div>
+            <form id="aiForm" class="form">
+              <label><span data-i18n="settings.provider"></span>
+                <select id="aiProviderSelect" class="input"></select>
+              </label>
+              <label><span data-i18n="settings.apiKey"></span>
+                <input id="setAiKey" class="input" type="password" autocomplete="off" />
+              </label>
+              <label><span data-i18n="settings.model"></span>
+                <input id="setAiModel" class="input" list="aiModelList" />
+                <datalist id="aiModelList"></datalist>
+              </label>
+              <label id="aiEffortWrap"><span data-i18n="settings.effort"></span>
+                <select id="setAiEffort" class="input">
+                  <option value="low" data-i18n="settings.effort.low"></option>
+                  <option value="medium" data-i18n="settings.effort.medium"></option>
+                  <option value="high" selected data-i18n="settings.effort.high"></option>
+                  <option value="xhigh" data-i18n="settings.effort.xhigh"></option>
+                </select>
+              </label>
+              <div class="row">
+                <button type="submit" class="btn primary" data-i18n="settings.save"></button>
+                <button type="button" id="testAiBtn" class="btn" data-i18n="settings.test"></button>
+              </div>
+            </form>
+            <div id="aiResult" class="result"></div>
+          </div>
+
+          <!-- مەترسی -->
+          <div class="card">
+            <div class="card-head"><h3 data-i18n="settings.risk"></h3></div>
+            <form id="riskForm" class="form">
+              <div class="form-row">
+                <label><span data-i18n="settings.riskPercent"></span>
+                  <input id="setRisk" type="number" step="any" class="input" />
+                </label>
+                <label><span data-i18n="settings.maxLev"></span>
+                  <input id="setMaxLev" type="number" class="input" />
+                </label>
+              </div>
+              <div class="form-row">
+                <label><span data-i18n="settings.defLev"></span>
+                  <input id="setDefLev" type="number" class="input" />
+                </label>
+                <label><span data-i18n="settings.maxPos"></span>
+                  <input id="setMaxPos" type="number" class="input" />
+                </label>
+              </div>
+              <label><span data-i18n="settings.dailyLoss"></span>
+                <input id="setDailyLoss" type="number" step="any" class="input" />
+              </label>
+              <label class="inline-check">
+                <input type="checkbox" id="setConfirm" />
+                <span data-i18n="settings.confirm"></span>
+              </label>
+              <button type="submit" class="btn primary" data-i18n="settings.save"></button>
+            </form>
+            <div id="riskResult" class="result"></div>
+          </div>
+
+          <!-- گشتی -->
+          <div class="card">
+            <div class="card-head"><h3 data-i18n="settings.general"></h3></div>
+            <form id="generalForm" class="form">
+              <label><span data-i18n="settings.language"></span>
+                <select id="setLanguage" class="input"></select>
+              </label>
+              <button type="submit" class="btn primary" data-i18n="settings.save"></button>
+            </form>
+            <div id="generalResult" class="result"></div>
+            <div class="about">
+              <div class="about-row"><span>Hirani Crypto Trade Bot</span><span id="appVersion">v2.0.0</span></div>
+              <div class="about-row muted small">MIT License · ccxt · Electron</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══════════ دیالۆگی پۆزیشن ══════════ -->
+    <div id="posModal" class="modal-backdrop hidden">
+      <div class="modal">
+        <div class="card-head">
+          <h3 id="posModalTitle" data-i18n="modal.editPosition"></h3>
+          <button id="posModalClose" class="btn tiny">✕</button>
+        </div>
+        <div id="posModalInfo" class="modal-info"></div>
+        <div class="form">
+          <div class="form-row">
+            <label><span data-i18n="ai.stopLoss"></span>
+              <input id="posModalSL" type="number" step="any" class="input" />
+            </label>
+            <label><span data-i18n="ai.takeProfit"></span>
+              <input id="posModalTP" type="number" step="any" class="input" />
+            </label>
+          </div>
+          <button id="posModalApply" class="btn primary big" data-i18n="modal.applySLTP"></button>
+          <div class="divider"></div>
+          <div class="lbl-small" data-i18n="modal.closePartial"></div>
+          <div class="row">
+            <button class="btn close-pct" data-pct="25">25%</button>
+            <button class="btn close-pct" data-pct="50">50%</button>
+            <button class="btn close-pct" data-pct="75">75%</button>
+            <button class="btn danger close-pct" data-pct="100" data-i18n="modal.closeAll"></button>
+          </div>
+        </div>
+        <div id="posModalResult" class="result"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="i18n.js"></script>
+    <script src="chart.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

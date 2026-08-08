@@ -1,0 +1,100 @@
+{
+  "name": "hirani-crypto-trade-bot",
+  "productName": "Hirani Crypto Trade Bot",
+  "version": "2.0.0",
+  "description": "AI-powered crypto trading desktop app — multi-exchange spot & futures with Claude / OpenAI / Gemini analysis",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win --x64",
+    "build:portable": "electron-builder --win portable --x64",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux AppImage"
+  },
+  "keywords": [
+    "crypto",
+    "trading",
+    "bot",
+    "ai",
+    "electron",
+    "ccxt",
+    "okx",
+    "binance",
+    "bybit",
+    "futures",
+    "spot"
+  ],
+  "author": "hiranideve",
+  "license": "MIT",
+  "homepage": "https://github.com/hiranideve/Hirani-Crypto-Trade-Bot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hiranideve/Hirani-Crypto-Trade-Bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hiranideve/Hirani-Crypto-Trade-Bot/issues"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "ccxt": "^4.4.60"
+  },
+  "build": {
+    "appId": "com.hirani.cryptotradebot",
+    "productName": "Hirani Crypto Trade Bot",
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "ui/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "artifactName": "HiraniCryptoTradeBot-${version}-${os}-${arch}.${ext}",
+    "compression": "maximum",
+    "npmRebuild": false,
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "target": "dmg",
+      "category": "public.app-category.finance"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": "AppImage",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Hirani Trade Bot",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "HiraniCryptoTradeBot-${version}-win-x64-portable.${ext}"
+    }
+  }
+}
